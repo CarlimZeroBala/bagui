@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Integração - Backend</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 { color: #1a73e8; margin-top: 0; }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box; /* Garante que o padding não estoure a largura */
+        }
+        button {
+            background-color: #0061f2;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #004bbd; }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Como podemos ajudar?</h2>
+    <form id="contact-form">
+        
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" name="nome" placeholder="Seu nome" required>
+
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+
+        <label for="mensagem">Mensagem</label>
+        <textarea id="mensagem" name="mensagem" rows="4" placeholder="Descreva sua necessidade" required></textarea>
+
+        <label for="arquivo">Anexar arquivo</label>
+        <input type="file" id="arquivo" name="arquivo" accept=".pdf, .png, .jpg">
+
+        <button type="submit" id="btn-enviar">ENVIAR MENSAGEM</button>
+    </form>
+
+    <div id="status-msg" class="status"></div>
+</div>
+
+<script>
+    const form = document.getElementById('contact-form');
+    const statusDiv = document.getElementById('status-msg');
+    const btn = document.getElementById('btn-enviar');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Impede o recarregamento da página
+
+        // Feedback visual de carregamento
+        btn.textContent = "Enviando...";
+        btn.disabled = true;
+        statusDiv.style.display = 'none';
+
+        // 1. Cria o FormData automaticamente pegando todos os inputs com 'name'
+        const formData = new FormData(form);
+
+        try {
+            // 2. Dispara para o seu backend local
+            const response = await fetch('http://localhost:3000/api/contact', {
+                method: 'POST',
+                body: formData // O navegador define o Content-Type multipart automaticamente aqui
+            });
+
+            const result = await response.json();
+
+            statusDiv.style.display = 'block';
+            
+            if (response.ok) {
+                statusDiv.className = 'status success';
+                statusDiv.textContent = "✅ Sucesso: " + result.message;
+                form.reset(); // Limpa o formulário
+            } else {
+                throw new Error(result.error || 'Erro desconhecido');
+            }
+
+        } catch (error) {
+            console.error('Erro:', error);
+            statusDiv.className = 'status error';
+            statusDiv.textContent = "❌ Erro: " + error.message;
+        } finally {
+            btn.textContent = "ENVIAR MENSAGEM";
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
