@@ -6,37 +6,40 @@ const apiRoutes = require('./src/routes/api');
 const app = express();
 
 /**
- * CONFIGURAÇÃO DE CORS
- * O erro "falta cabeçalho Access-Control-Allow-Origin" acontece porque o navegador
- * bloqueia a resposta por segurança. app.use(cors()) sem parâmetros libera o acesso
- * de qualquer origem, o que é ideal para sua fase de testes locais.
+ * CONFIGURAÇÃO DE CORS (PRODUÇÃO)
+ * Agora que você está no Render, restringimos o acesso apenas 
+ * ao domínio oficial para garantir a segurança.
  */
-app.use(cors());
+const corsOptions = {
+  origin: 'https://newsite.nuvem.online', // Domínio do site real
+  methods: ['POST'],                      // Permitimos apenas POST (Forms/Newsletter)
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 /**
- * MIDDLEWARES DE PARSE
- * express.json(): Necessário para a rota de Newsletter (recebe JSON)
- * express.urlencoded(): Boa prática para lidar com submissões de formulários padrão
+ * MIDDLEWARES
+ * Necessários para que o Express entenda o corpo das requisições (JSON e URL Encoded).
  */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /**
- * DEFINIÇÃO DE ROTAS
- * Centralizamos todas as rotas de backend (Contato, Newsletter, Disparo) 
- * sob o prefixo /api para organização.
+ * ROTAS
+ * Centraliza todas as operações sob o prefixo /api.
  */
 app.use('/api', apiRoutes);
 
 /**
- * INICIALIZAÇÃO DO SERVIDOR
- * O servidor utilizará a porta definida no seu arquivo .env ou a 3000 por padrão.
+ * INICIALIZAÇÃO
+ * O Render define automaticamente a variável PORT no ambiente.
  */
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-    console.log('---------------------------------------------------');
-    console.log(`🚀 SERVIDOR BACKEND RODANDO NA PORTA: ${PORT}`);
-    console.log(`✅ CORS liberado para testes no navegador`);
-    console.log(`📂 Endpoints disponíveis em: http://localhost:${PORT}/api`);
-    console.log('---------------------------------------------------');
+    console.log(`---------------------------------------------------`);
+    console.log(`🚀 SERVIDOR EM PRODUÇÃO RODANDO NA PORTA: ${PORT}`);
+    console.log(`🔒 ORIGEM PERMITIDA: ${corsOptions.origin}`);
+    console.log(`---------------------------------------------------`);
 });
